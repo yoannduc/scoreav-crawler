@@ -1,0 +1,482 @@
+{
+  "ModelName": "metal-news",
+  "ModelMetadata": {
+    "Author": "yoannduc",
+    "DateCreated": "Jun 28, 2021, 01:14 AM",
+    "DateLastModified": "Jun 28, 2021, 02:16 AM",
+    "Description": "",
+    "AWSService": "Amazon DynamoDB",
+    "Version": "3.0"
+  },
+  "DataModel": [
+    {
+      "TableName": "metal-news",
+      "KeyAttributes": {
+        "PartitionKey": {
+          "AttributeName": "pk",
+          "AttributeType": "S"
+        },
+        "SortKey": {
+          "AttributeName": "sk",
+          "AttributeType": "S"
+        }
+      },
+      "NonKeyAttributes": [
+        {
+          "AttributeName": "id",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "date",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "label",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "uri",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "short_description",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "source",
+          "AttributeType": "S"
+        },
+        {
+          "AttributeName": "type",
+          "AttributeType": "S"
+        }
+      ],
+      "GlobalSecondaryIndexes": [
+        {
+          "IndexName": "date",
+          "KeyAttributes": {
+            "PartitionKey": {
+              "AttributeName": "date",
+              "AttributeType": "S"
+            },
+            "SortKey": {
+              "AttributeName": "sk",
+              "AttributeType": "S"
+            }
+          },
+          "Projection": {
+            "ProjectionType": "ALL"
+          }
+        },
+        {
+          "IndexName": "uuid",
+          "KeyAttributes": {
+            "PartitionKey": {
+              "AttributeName": "id",
+              "AttributeType": "S"
+            }
+          },
+          "Projection": {
+            "ProjectionType": "ALL"
+          }
+        }
+      ],
+      "TableData": [
+        {
+          "pk": {
+            "S": "scoreav"
+          },
+          "sk": {
+            "S": "news#44a8519c-6651-4307-94f6-2f9ad99311bf"
+          },
+          "id": {
+            "S": "44a8519c-6651-4307-94f6-2f9ad99311bf"
+          },
+          "date": {
+            "S": "2021-06-26"
+          },
+          "label": {
+            "S": "Une énigme glacée en single dans ta Horte"
+          },
+          "uri": {
+            "S": "http://www.scoreav.com/une-enigme-glacee-en-single-dans-ta-horte/"
+          },
+          "source": {
+            "S": "scoreav"
+          },
+          "type": {
+            "S": "news"
+          }
+        },
+        {
+          "pk": {
+            "S": "scoreav"
+          },
+          "sk": {
+            "S": "news#f4ffac57-cbc0-4f9b-b87e-fb863c24f1da"
+          },
+          "id": {
+            "S": "f4ffac57-cbc0-4f9b-b87e-fb863c24f1da"
+          },
+          "date": {
+            "S": "2021-06-25"
+          },
+          "label": {
+            "S": "The Judas Knife avec son single et son couteau"
+          },
+          "uri": {
+            "S": "http://www.scoreav.com/the-judas-knife-avec-son-single-et-son-couteau/"
+          },
+          "source": {
+            "S": "scoreav"
+          },
+          "type": {
+            "S": "news"
+          }
+        },
+        {
+          "pk": {
+            "S": "scoreav"
+          },
+          "sk": {
+            "S": "news#3903e9f7-2f70-4ea6-9da1-deedc403c4a2"
+          },
+          "id": {
+            "S": "3903e9f7-2f70-4ea6-9da1-deedc403c4a2"
+          },
+          "date": {
+            "S": "2021-06-24"
+          },
+          "label": {
+            "S": "Stream du jour : Queen(Ares)"
+          },
+          "uri": {
+            "S": "http://www.scoreav.com/stream-du-jour-queenares/"
+          },
+          "source": {
+            "S": "scoreav"
+          },
+          "type": {
+            "S": "news"
+          }
+        },
+        {
+          "pk": {
+            "S": "scoreav"
+          },
+          "sk": {
+            "S": "news#800a540c-ccfb-46d8-a585-b6e409ca9cc9"
+          },
+          "id": {
+            "S": "800a540c-ccfb-46d8-a585-b6e409ca9cc9"
+          },
+          "date": {
+            "S": "2021-06-24"
+          },
+          "label": {
+            "S": "Impossible n’est pas Kehlvin"
+          },
+          "uri": {
+            "S": "http://www.scoreav.com/impossible-nest-pas-kehlvin/"
+          },
+          "source": {
+            "S": "scoreav"
+          },
+          "type": {
+            "S": "news"
+          }
+        },
+        {
+          "pk": {
+            "S": "scoreav"
+          },
+          "sk": {
+            "S": "news#0666d065-ab31-47fd-a05e-552c03a839ed"
+          },
+          "id": {
+            "S": "0666d065-ab31-47fd-a05e-552c03a839ed"
+          },
+          "date": {
+            "S": "2021-06-23"
+          },
+          "label": {
+            "S": "Quicksand balance un missile (animé) en single"
+          },
+          "uri": {
+            "S": "http://www.scoreav.com/quicksand-balance-un-missile-en-single/"
+          },
+          "source": {
+            "S": "scoreav"
+          },
+          "type": {
+            "S": "news"
+          }
+        },
+        {
+          "pk": {
+            "S": "scoreav"
+          },
+          "sk": {
+            "S": "news#252702fc-ed72-42f9-92e8-34c0ee04348a"
+          },
+          "id": {
+            "S": "252702fc-ed72-42f9-92e8-34c0ee04348a"
+          },
+          "date": {
+            "S": "2021-06-18"
+          },
+          "label": {
+            "S": "Stream du jour : OAKHANDS"
+          },
+          "uri": {
+            "S": "http://www.scoreav.com/stream-du-jour-oakhands/"
+          },
+          "source": {
+            "S": "scoreav"
+          },
+          "type": {
+            "S": "news"
+          }
+        },
+        {
+          "pk": {
+            "S": "scoreav"
+          },
+          "sk": {
+            "S": "news#c2067926-c852-4b4e-ba19-9f401755a97a"
+          },
+          "id": {
+            "S": "c2067926-c852-4b4e-ba19-9f401755a97a"
+          },
+          "date": {
+            "S": "2021-06-17"
+          },
+          "label": {
+            "S": "TEETH ou comment (te) refaire les dents en single"
+          },
+          "uri": {
+            "S": "http://www.scoreav.com/teeth-ou-comment-te-refaire-les-dents-en-single/"
+          },
+          "source": {
+            "S": "scoreav"
+          },
+          "type": {
+            "S": "news"
+          }
+        },
+        {
+          "pk": {
+            "S": "scoreav"
+          },
+          "sk": {
+            "S": "focus#fbd95415-dede-4021-a8fe-7090f8abd767"
+          },
+          "id": {
+            "S": "fbd95415-dede-4021-a8fe-7090f8abd767"
+          },
+          "date": {
+            "S": "2021-01-03"
+          },
+          "label": {
+            "S": "Ànteros – …y en paz la oscuridad"
+          },
+          "uri": {
+            "S": "http://www.scoreav.com/anteros-y-en-paz-la-oscuridad/"
+          },
+          "source": {
+            "S": "scoreav"
+          },
+          "type": {
+            "S": "focus"
+          }
+        },
+        {
+          "pk": {
+            "S": "scoreav"
+          },
+          "sk": {
+            "S": "focus#c84486f3-521a-415c-86b5-b5092344cb89"
+          },
+          "id": {
+            "S": "c84486f3-521a-415c-86b5-b5092344cb89"
+          },
+          "date": {
+            "S": "2019-11-24"
+          },
+          "label": {
+            "S": "KØDE – Discrète Transformation"
+          },
+          "uri": {
+            "S": "http://www.scoreav.com/kode-discrete-transformation/"
+          },
+          "source": {
+            "S": "scoreav"
+          },
+          "type": {
+            "S": "focus"
+          }
+        },
+        {
+          "pk": {
+            "S": "scoreav"
+          },
+          "sk": {
+            "S": "focus#1e174063-ba6e-40bc-93b1-0e9b73aa14bb"
+          },
+          "id": {
+            "S": "1e174063-ba6e-40bc-93b1-0e9b73aa14bb"
+          },
+          "date": {
+            "S": "2019-11-20"
+          },
+          "label": {
+            "S": "LETHVM – Acedia"
+          },
+          "uri": {
+            "S": "http://www.scoreav.com/lethvm-acedia/"
+          },
+          "source": {
+            "S": "scoreav"
+          },
+          "type": {
+            "S": "focus"
+          }
+        },
+        {
+          "pk": {
+            "S": "scoreav"
+          },
+          "sk": {
+            "S": "focus#9814e725-82ff-4dee-90eb-f5ecba15254e"
+          },
+          "id": {
+            "S": "9814e725-82ff-4dee-90eb-f5ecba15254e"
+          },
+          "date": {
+            "S": "2019-09-18"
+          },
+          "label": {
+            "S": "LIFESICK – Swept In Black"
+          },
+          "uri": {
+            "S": "http://www.scoreav.com/lifesick-swept-in-black/"
+          },
+          "source": {
+            "S": "scoreav"
+          },
+          "type": {
+            "S": "focus"
+          }
+        },
+        {
+          "pk": {
+            "S": "scoreav"
+          },
+          "sk": {
+            "S": "focus#fe70d4e8-9b13-4a94-a5d8-3379ef24869a"
+          },
+          "id": {
+            "S": "fe70d4e8-9b13-4a94-a5d8-3379ef24869a"
+          },
+          "date": {
+            "S": "2019-05-26"
+          },
+          "label": {
+            "S": "Black Willows – Bliss"
+          },
+          "uri": {
+            "S": "http://www.scoreav.com/black-willows-bliss/"
+          },
+          "source": {
+            "S": "scoreav"
+          },
+          "type": {
+            "S": "focus"
+          }
+        },
+        {
+          "pk": {
+            "S": "scoreav"
+          },
+          "sk": {
+            "S": "focus#efd520bd-d2d9-424b-ac02-c53d6fdd924e"
+          },
+          "id": {
+            "S": "efd520bd-d2d9-424b-ac02-c53d6fdd924e"
+          },
+          "date": {
+            "S": "2019-05-23"
+          },
+          "label": {
+            "S": "Vesperine – Espérer Sombrer"
+          },
+          "uri": {
+            "S": "http://www.scoreav.com/vesperine-esperer-sombrer/"
+          },
+          "source": {
+            "S": "scoreav"
+          },
+          "type": {
+            "S": "focus"
+          }
+        },
+        {
+          "pk": {
+            "S": "scoreav"
+          },
+          "sk": {
+            "S": "focus#09268862-7453-4621-8b61-6f9ef5cd850a"
+          },
+          "id": {
+            "S": "09268862-7453-4621-8b61-6f9ef5cd850a"
+          },
+          "date": {
+            "S": "2018-11-16"
+          },
+          "label": {
+            "S": "The Secret – Lux Tenebris"
+          },
+          "uri": {
+            "S": "http://www.scoreav.com/the-secret-lux-tenebris/"
+          },
+          "source": {
+            "S": "scoreav"
+          },
+          "type": {
+            "S": "focus"
+          }
+        }
+      ],
+      "DataAccess": {
+        "MySql": {}
+      },
+      "BillingMode": "PROVISIONED",
+      "ProvisionedCapacitySettings": {
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        },
+        "AutoScalingRead": {
+          "ScalableTargetRequest": {
+            "MinCapacity": 1,
+            "MaxCapacity": 10,
+            "ServiceRole": "AWSServiceRoleForApplicationAutoScaling_DynamoDBTable"
+          },
+          "ScalingPolicyConfiguration": {
+            "TargetValue": 70
+          }
+        },
+        "AutoScalingWrite": {
+          "ScalableTargetRequest": {
+            "MinCapacity": 1,
+            "MaxCapacity": 10,
+            "ServiceRole": "AWSServiceRoleForApplicationAutoScaling_DynamoDBTable"
+          },
+          "ScalingPolicyConfiguration": {
+            "TargetValue": 70
+          }
+        }
+      }
+    }
+  ]
+}
