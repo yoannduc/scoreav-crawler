@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  dynamodb:
+    image: localstack/localstack:latest
+    container_name: scoreav-localstack
+    ports:
+      - 127.0.0.1:${EDGE_PORT:-4566}:${EDGE_PORT:-4566}
+    env_file:
+      - ./.env
+    volumes:
+      - ../.aws:/root/.aws
+      - ./localstack-init:${INIT_SCRIPTS_PATH:-/docker-entrypoint-initaws.d}
