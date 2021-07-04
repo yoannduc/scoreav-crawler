@@ -30,7 +30,7 @@ type event struct {
 	Type   string `json:"type"`
 }
 
-func buildUri(e event) (string, error) {
+func buildURI(e event) (string, error) {
 	switch e.Source {
 	case "scoreav":
 		switch e.Type {
@@ -85,7 +85,7 @@ func buildElemList(d *goquery.Document, ev event) []*element {
 // ctx is the lambda context
 // e is the event input
 func HandleRequest(ctx context.Context, e event) (string, error) {
-	uri, err := buildUri(e)
+	uri, err := buildURI(e)
 	if err != nil {
 		return handleErr(err.Error())
 	}
