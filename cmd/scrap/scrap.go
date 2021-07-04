@@ -6,11 +6,19 @@ import (
 	"log"
 	"net/http"
 
+	env "github.com/Netflix/go-env"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/google/uuid"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/yoannduc/scoreav-crawler/internal/aws/dynamo"
 )
+
+type config struct {
+	DdbTable string `env:"AWS_DDB_TABLE_NAME,required=true"`
+}
 
 type element struct {
 	Pk     string `json:"pk"`
@@ -85,25 +93,84 @@ func buildElemList(d *goquery.Document, ev event) []*element {
 // ctx is the lambda context
 // e is the event input
 func HandleRequest(ctx context.Context, e event) (string, error) {
+	// Set config
+	var c config
+	if _, err := env.UnmarshalFromEnviron(&c); err != nil {
+		return handleErr("Error while unwrapping env config : " + err.Error())
+	}
+
 	uri, err := buildURI(e)
 	if err != nil {
-		return handleErr(err.Error())
+		return handleErr("Error building the uri: " + err.Error())
 	}
 
 	resp, err := http.Get(uri)
 	if err != nil {
-		return handleErr(err.Error())
+		return handleErr("Error while querying the endpoint :" + err.Error() + " (endpoint: " + uri + ")")
 	}
 	defer resp.Body.Close()
 
 	d, err := goquery.NewDocumentFromResponse(resp)
 	if err != nil {
-		return handleErr(err.Error())
+		return handleErr("Error while decoding response into goquery: " + err.Error())
 	}
 
-	el := buildElemList(d, e)
+	els := buildElemList(d, e)
 
-	json, err := jsoniter.MarshalToString(el)
+	// Create the ddb connexion
+	svc, err := dynamo.GetConnexion()
+	if err != nil {
+		return handleErr("Error while creating dynamo connexion : " + err.Error())
+	}
+
+	// Array of ddb objects to write
+	ddbWrites := make([]*dynamodb.WriteRequest, 0)
+
+	for _, el := range els {
+		da, err := dynamodbattribute.MarshalMap(el)
+		if err != nil {
+			// TODO add elem in err
+			return handleErr("Error while marshalling into dynamo format: " + err.Error())
+		}
+
+		log.Printf("el | %T | %v\n", el, el)
+		log.Printf("da | %T | %v\n", da, da)
+
+		ddbWrites = append(ddbWrites, &dynamodb.WriteRequest{
+			PutRequest: &dynamodb.PutRequest{
+				Item: da,
+			},
+		})
+	}
+
+	log.Printf("ddbWrites | %T | %v\n", ddbWrites, ddbWrites)
+
+	// TODO add logs
+	var u map[string][]*dynamodb.WriteRequest
+	for {
+		log.Printf("u | %T | %v\n", u, u)
+		if len(u) < 1 {
+			u = map[string][]*dynamodb.WriteRequest{
+				c.DdbTable: ddbWrites,
+			}
+		}
+		result, err := svc.BatchWriteItem(&dynamodb.BatchWriteItemInput{
+			RequestItems: u,
+		})
+		if err != nil {
+			return handleErr("Error while writing to dynamodb: " + err.Error())
+		}
+
+		if len(result.UnprocessedItems) < 1 {
+			break
+		}
+
+		u = result.UnprocessedItems
+
+		log.Printf("u | %T | %v\n", u, u)
+	}
+
+	json, err := jsoniter.MarshalToString(els)
 	if err != nil {
 		return handleErr(err.Error())
 	}
