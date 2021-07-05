@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"log"
+	"math"
 	"net/http"
+	"time"
 
 	env "github.com/Netflix/go-env"
 	"github.com/PuerkitoBio/goquery"
@@ -88,6 +90,9 @@ func buildElemList(d *goquery.Document, ev event) []*element {
 	return el
 }
 
+// TODO Add some logs
+// TODO Think about db keys with uniqueness in mind
+
 // HandleRequest handles the lambda job
 // It scraps scoreav site to get articles of today which are not yet in ddb
 // ctx is the lambda context
@@ -133,9 +138,6 @@ func HandleRequest(ctx context.Context, e event) (string, error) {
 			return handleErr("Error while marshalling into dynamo format: " + err.Error())
 		}
 
-		log.Printf("el | %T | %v\n", el, el)
-		log.Printf("da | %T | %v\n", da, da)
-
 		ddbWrites = append(ddbWrites, &dynamodb.WriteRequest{
 			PutRequest: &dynamodb.PutRequest{
 				Item: da,
@@ -143,31 +145,70 @@ func HandleRequest(ctx context.Context, e event) (string, error) {
 		})
 	}
 
-	log.Printf("ddbWrites | %T | %v\n", ddbWrites, ddbWrites)
+	// Write can only be done by batches of 25 max
+	// Calculate how many batches the whole write should need
+	maxWriteOps := 25
+	batches := int(math.Ceil(float64(len(ddbWrites)) / float64(maxWriteOps)))
+	done := make(chan bool)
 
-	// TODO add logs
-	var u map[string][]*dynamodb.WriteRequest
-	for {
-		log.Printf("u | %T | %v\n", u, u)
-		if len(u) < 1 {
-			u = map[string][]*dynamodb.WriteRequest{
-				c.DdbTable: ddbWrites,
+	for i := 0; i < batches; i++ {
+		// Define the start and end of this batch
+		// If end is more than full length, get the length as cannot take more than cap
+		start, end := i*maxWriteOps, (i+1)*maxWriteOps
+		if end > len(ddbWrites) {
+			end = len(ddbWrites)
+		}
+
+		log.Printf("BATCH WRITE | batches: %v | i: %v | start: %v | end: %v\n", batches, i, start, end)
+
+		go func(ddbn string, w []*dynamodb.WriteRequest, c chan<- bool) {
+			var u map[string][]*dynamodb.WriteRequest
+			r := 0
+			for {
+				if len(u) < 1 {
+					u = map[string][]*dynamodb.WriteRequest{
+						ddbn: w,
+					}
+				}
+				result, err := svc.BatchWriteItem(&dynamodb.BatchWriteItemInput{
+					RequestItems: u,
+				})
+				if err != nil {
+					log.Println("Error while writing to dynamodb: " + err.Error())
+					c <- false
+					break
+				}
+
+				if len(result.UnprocessedItems) < 1 {
+					if r > 0 {
+						log.Println("Retry went well")
+					}
+					c <- true
+					break
+				}
+
+				log.Println("Batch write went without errors, but there are still  some elements to write, retrying in a while")
+
+				if r > 3 {
+					log.Println("Too many retries, halting this batch write")
+					c <- false
+					break
+				}
+
+				u = result.UnprocessedItems
+
+				r++
+				time.Sleep(time.Duration(int64(math.Floor((math.Pow(2, float64(r))-1)*0.5))) * time.Second)
 			}
-		}
-		result, err := svc.BatchWriteItem(&dynamodb.BatchWriteItemInput{
-			RequestItems: u,
-		})
-		if err != nil {
-			return handleErr("Error while writing to dynamodb: " + err.Error())
-		}
+		}(c.DdbTable, ddbWrites[start:end], done)
 
-		if len(result.UnprocessedItems) < 1 {
-			break
+	}
+
+	for i := 0; i < batches; i++ {
+		d := <-done
+		if !d {
+			return handleErr("Error while writing to dynamodb. See the logs for more informations")
 		}
-
-		u = result.UnprocessedItems
-
-		log.Printf("u | %T | %v\n", u, u)
 	}
 
 	json, err := jsoniter.MarshalToString(els)
