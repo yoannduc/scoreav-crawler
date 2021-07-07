@@ -3,7 +3,7 @@ version: '3'
 services:
   dynamodb:
     image: localstack/localstack:latest
-    container_name: scoreav-localstack
+    container_name: metalnews-localstack
     ports:
       - 127.0.0.1:${EDGE_PORT:-4566}:${EDGE_PORT:-4566}
     env_file:
