@@ -69,7 +69,12 @@ func HandleRequest(ctx context.Context, e types.Event) (string, error) {
 		return helpers.HandleErr("Error while decoding response into goquery: " + err.Error())
 	}
 
-	els := buildElemList(d, e)
+	ld, err := helpers.GetLastUpdatedDate(c.DdbTable, e)
+	if err != nil {
+		log.Println(err)
+	}
+
+	els := buildElemList(d, e, ld)
 
 	// If we do not want to save to db (to debug scrapping), return scrapped list
 	if !c.DdbSave {

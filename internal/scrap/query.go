@@ -54,8 +54,8 @@ func retrieveElem(s *goquery.Selection, ev types.Event, c chan<- *types.Element)
 	}
 
 	c <- &types.Element{
-		Pk:     ev.Source,
-		Sk:     ev.Type + "#" + l,
+		Pk:     ev.Source + "#" + ev.Type,
+		Sk:     d + "#" + l,
 		ID:     id,
 		Link:   l,
 		Title:  s.Find(".cb-post-title").Text(),
@@ -67,7 +67,7 @@ func retrieveElem(s *goquery.Selection, ev types.Event, c chan<- *types.Element)
 	}
 }
 
-func buildElemList(d *goquery.Document, ev types.Event) []*types.Element {
+func buildElemList(d *goquery.Document, ev types.Event, ld string) []*types.Element {
 	var el []*types.Element
 
 	switch ev.Source {
@@ -85,7 +85,9 @@ func buildElemList(d *goquery.Document, ev types.Event) []*types.Element {
 
 		for i := 0; i < n; i++ {
 			e := <-c
-			el = append(el, e)
+			if e.Date > ld || e.Date == ld {
+				el = append(el, e)
+			}
 		}
 	}
 
