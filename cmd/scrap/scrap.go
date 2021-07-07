@@ -6,6 +6,8 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	env "github.com/Netflix/go-env"
@@ -20,6 +22,7 @@ import (
 
 type config struct {
 	DdbTable string `env:"AWS_DDB_TABLE_NAME,required=true"`
+	DdbSave  bool   `env:"SAVE_TO_DDB,default=true"`
 }
 
 type element struct {
@@ -38,6 +41,11 @@ type element struct {
 type event struct {
 	Source string `json:"source"`
 	Type   string `json:"type"`
+}
+
+type output struct {
+	event
+	Processed int `json:"processed"`
 }
 
 func buildURI(e event) (string, error) {
@@ -61,18 +69,55 @@ func handleErr(e string) (string, error) {
 	return "", errors.New(e)
 }
 
+func queryFullPage(l string) (string, error) {
+	// Request the HTML page.
+	res, err := http.Get(l)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+	if 200 < res.StatusCode || res.StatusCode >= 300 {
+		return "", errors.New("Querying " + l + " returned status of " + strconv.Itoa(res.StatusCode))
+	}
+
+	// Load the HTML document
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		return "", err
+	}
+
+	var rs []string
+	doc.Find(".cb-entry-content>p[style*=\"text-align: justify;\"]").Each(func(_ int, s *goquery.Selection) {
+		rs = append(rs, s.Text())
+	})
+
+	return strings.Join(rs, "\n\n"), nil
+}
+
 func retrieveElem(s *goquery.Selection, ev event, c chan<- *element) {
 	id := uuid.NewString()
-	l, _ := s.Find(".cb-post-title>a").Attr("href")
 	d, _ := s.Find(".cb-date>time").Attr("datetime")
+
+	// TODO Check how to close this routine early if no link retrieved
+	l, ok := s.Find(".cb-post-title>a").Attr("href")
+	var ld string
+	var err error
+	if ok {
+		ld, err = queryFullPage(l)
+		if err != nil {
+			ld = ""
+			log.Println(err)
+		}
+	}
 
 	c <- &element{
 		Pk:     ev.Source,
-		Sk:     ev.Type + "#" + id,
+		Sk:     ev.Type + "#" + l,
 		ID:     id,
 		Link:   l,
 		Title:  s.Find(".cb-post-title").Text(),
 		SDesc:  s.Find(".cb-excerpt").Text(),
+		LDesc:  ld,
 		Date:   d,
 		Source: ev.Source,
 		Type:   ev.Type,
@@ -135,6 +180,18 @@ func HandleRequest(ctx context.Context, e event) (string, error) {
 	}
 
 	els := buildElemList(d, e)
+
+	// If we do not want to save to db (to debug scrapping), return scrapped list
+	if !c.DdbSave {
+		j, err := jsoniter.MarshalToString(els)
+		if err != nil {
+			return handleErr(err.Error())
+		}
+
+		log.Println(j)
+
+		return j, nil
+	}
 
 	// Create the ddb connexion
 	svc, err := dynamo.GetConnexion()
@@ -226,14 +283,17 @@ func HandleRequest(ctx context.Context, e event) (string, error) {
 		}
 	}
 
-	json, err := jsoniter.MarshalToString(els)
+	j, err := jsoniter.MarshalToString(&output{
+		Processed: len(els),
+		event:     e,
+	})
 	if err != nil {
 		return handleErr(err.Error())
 	}
 
-	log.Println(json)
+	log.Println(j)
 
-	return json, nil
+	return j, nil
 }
 
 func main() {
