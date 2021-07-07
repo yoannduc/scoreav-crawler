@@ -61,30 +61,44 @@ func handleErr(e string) (string, error) {
 	return "", errors.New(e)
 }
 
+func retrieveElem(s *goquery.Selection, ev event, c chan<- *element) {
+	id := uuid.NewString()
+	l, _ := s.Find(".cb-post-title>a").Attr("href")
+	d, _ := s.Find(".cb-date>time").Attr("datetime")
+
+	c <- &element{
+		Pk:     ev.Source,
+		Sk:     ev.Type + "#" + id,
+		ID:     id,
+		Link:   l,
+		Title:  s.Find(".cb-post-title").Text(),
+		SDesc:  s.Find(".cb-excerpt").Text(),
+		Date:   d,
+		Source: ev.Source,
+		Type:   ev.Type,
+	}
+}
+
 func buildElemList(d *goquery.Document, ev event) []*element {
 	var el []*element
 
 	switch ev.Source {
 	case "scoreav":
+		// Counter to know how many channel output to wait for
+		n := 0
+		c := make(chan *element, 1)
+		defer close(c)
+
 		d.Find("article").Each(func(_ int, s *goquery.Selection) {
-			id := uuid.NewString()
-			l, _ := s.Find(".cb-post-title>a").Attr("href")
-			d, _ := s.Find(".cb-date>time").Attr("datetime")
+			go retrieveElem(s, ev, c)
 
-			e := &element{
-				Pk:     ev.Source,
-				Sk:     ev.Type + "#" + id,
-				ID:     id,
-				Link:   l,
-				Title:  s.Find(".cb-post-title").Text(),
-				SDesc:  s.Find(".cb-excerpt").Text(),
-				Date:   d,
-				Source: ev.Source,
-				Type:   ev.Type,
-			}
-
-			el = append(el, e)
+			n++
 		})
+
+		for i := 0; i < n; i++ {
+			e := <-c
+			el = append(el, e)
+		}
 	}
 
 	return el
@@ -149,7 +163,8 @@ func HandleRequest(ctx context.Context, e event) (string, error) {
 	// Calculate how many batches the whole write should need
 	maxWriteOps := 25
 	batches := int(math.Ceil(float64(len(ddbWrites)) / float64(maxWriteOps)))
-	done := make(chan bool)
+	done := make(chan bool, 1)
+	defer close(done)
 
 	for i := 0; i < batches; i++ {
 		// Define the start and end of this batch
