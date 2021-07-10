@@ -32,3 +32,25 @@ aws dynamodb create-table \
     --billing-mode PAY_PER_REQUEST \
     --endpoint-url "http://$LOCALSTACK_HOSTNAME:$EDGE_PORT" \
     --profile $AWS_PROFILE_NAME
+
+# # Load dynamo data-history data
+# aws dynamodb batch-write-item \
+#     --request-items "{
+#         \"$AWS_DDB_TABLE_NAME\": [
+#             {
+#                 \"PutRequest\": {
+#                     \"Item\": {
+#                         \"pk\": {\"S\": \"notification\"},
+#                         \"sk\": {\"S\": \"mail#scoreav#news#2021-06-26T00:24:53Z\"},
+#                         \"date\": {\"S\": \"2021-06-26T00:24:53Z\"},
+#                         \"last_element_notified_pk\": {\"S\": \"scoreav#news\"},
+#                         \"last_element_notified_sk\": {\"S\": \"2021-06-25#http://www.scoreav.com/the-judas-knife-avec-son-single-et-son-couteau/\"},
+#                         \"source\": {\"S\": \"scoreav\"},
+#                         \"type\": {\"S\": \"news\"}
+#                     }
+#                 }
+#             }
+#         ]
+#     }" \
+#     --endpoint-url "http://$LOCALSTACK_HOSTNAME:$EDGE_PORT" \
+#     --profile "$AWS_PROFILE_NAME"
